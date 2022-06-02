@@ -42,6 +42,7 @@ class MapView(val activity: HelloGeoActivity, val googleMap: GoogleMap) {
   var cameraIdle = true
 
   val earthMarker = createMarker(EARTH_MARKER_COLOR)
+  val flpMarker = createMarker(Color.argb(255, 125, 0, 0))
 
   init {
     googleMap.uiSettings.apply {

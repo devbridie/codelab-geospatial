@@ -52,7 +52,7 @@ class HelloGeoView(val activity: HelloGeoActivity) : DefaultLifecycleObserver {
     }
 
   val statusText = root.findViewById<TextView>(R.id.statusText)
-  fun updateStatusText(earth: Earth, cameraGeospatialPose: GeospatialPose?) {
+  fun updateStatusText(earth: Earth?, cameraGeospatialPose: GeospatialPose?) {
     activity.runOnUiThread {
       val poseText = if (cameraGeospatialPose == null) "" else
         activity.getString(R.string.geospatial_pose,
@@ -64,8 +64,8 @@ class HelloGeoView(val activity: HelloGeoActivity) : DefaultLifecycleObserver {
                            cameraGeospatialPose.heading,
                            cameraGeospatialPose.headingAccuracy)
       statusText.text = activity.resources.getString(R.string.earth_state,
-                                                     earth.earthState.toString(),
-                                                     earth.trackingState.toString(),
+                                                     earth?.earthState.toString(),
+                                                     earth?.trackingState.toString(),
                                                      poseText)
     }
   }

@@ -15,10 +15,18 @@
  */
 package com.google.ar.core.codelabs.hellogeospatial
 
+import android.annotation.SuppressLint
+import android.location.Location
 import android.opengl.Matrix
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import com.google.ar.core.Anchor
 import com.google.ar.core.TrackingState
@@ -66,10 +74,33 @@ class HelloGeoRenderer(val activity: HelloGeoActivity) :
 
   val displayRotationHelper = DisplayRotationHelper(activity)
   val trackingStateHelper = TrackingStateHelper(activity)
+  private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+  @SuppressLint("MissingPermission")
   override fun onResume(owner: LifecycleOwner) {
     displayRotationHelper.onResume()
     hasSetTextureNames = false
+    fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
+
+    val locationRequest = LocationRequest.create()?.apply {
+      interval = 0
+      fastestInterval = 0
+      priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+    val callback = object : LocationCallback() {
+      override fun onLocationResult(p0: LocationResult) {
+        super.onLocationResult(p0)
+        Log.i("FLP", "FLP says ${LatLng(p0.lastLocation.latitude, p0.lastLocation.longitude)}")
+        activity.view.mapView?.flpMarker?.position = LatLng(p0.lastLocation.latitude, p0.lastLocation.longitude)
+        activity.view.mapView?.flpMarker?.rotation = p0.lastLocation.bearing
+
+        activity.view.mapView?.flpMarker?.isVisible = true
+      }
+    }
+    fusedLocationClient.requestLocationUpdates(locationRequest,
+                                               callback,
+                                               Looper.getMainLooper());
+
   }
 
   override fun onPause(owner: LifecycleOwner) {
@@ -183,7 +214,10 @@ class HelloGeoRenderer(val activity: HelloGeoActivity) :
         longitude = cameraGeospatialPose.longitude,
         heading = cameraGeospatialPose.heading
       )
+
     }
+    activity.view.updateStatusText(earth, earth?.cameraGeospatialPose)
+
 
     // Draw the placed anchor, if it exists.
     earthAnchor?.let {
